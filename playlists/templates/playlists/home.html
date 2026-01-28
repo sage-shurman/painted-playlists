@@ -1,0 +1,40 @@
+<!-- playlists/templates/playlists/home.html -->
+
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Your Playlists</h2>
+<p>Welcome, {{ user.username }}!</p>
+<div class="space-y-6">
+    {% for playlist in playlists %}
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+            <div class="p-4">
+                <div class="text-center">
+                    <h5 class="text-lg font-bold inline-block">{{ playlist.title }}</h5>
+                    <a href="{% url 'playlists:playlist_detail' playlist.id %}" class="ml-2 inline-block bg-blue-500 text-white text-sm font-medium py-1 px-3 rounded hover:bg-blue-600">View Playlist</a>
+                    </div>
+                </div>
+                <div class="carousel overflow-hidden relative mt-4">
+                    <button class="carousel-control-prev absolute left-0 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white px-2 py-1">‹</button>
+                    <div class="carousel-inner flex transition-transform duration-300 overflow-x-auto">
+                        {% for song in playlist.songs.all %}
+                            {% if song.photo %}
+                                <div class="carousel-item w-full flex-shrink-0 p-2">
+                                    <div class="relative">
+                                        <img src="{{ song.photo.url }}" alt="{{ song.title }}" class="w-64 h-64 object-cover mx-auto rounded-lg shadow-md">
+                                        <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-center py-1">
+                                            <p class="text-sm">{{ song.title }}<br>{{ song.artist }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <button class="carousel-control-next absolute right-0 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white px-2 py-1">›</button>
+            </div>
+        </div>
+    {% empty %}
+        <p class="text-gray-700">You have no playlists.</p>
+    {% endfor %}
+</div>
+{% endblock %}

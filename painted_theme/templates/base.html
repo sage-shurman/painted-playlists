@@ -1,0 +1,22 @@
+{% load static tailwind_tags %} <!-- Load static files and Tailwind tags -->
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+    <title>Django Tailwind</title> <!-- Page title -->
+		<meta charset="UTF-8"> <!-- Character encoding -->
+		<meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Responsive design -->
+		<meta http-equiv="X-UA-Compatible" content="ie=edge"> <!-- IE compatibility mode -->
+		{% tailwind_css %} <!-- Include Tailwind CSS -->
+	</head>
+
+	<body class="bg-gray-50 font-serif leading-normal tracking-normal"> <!-- Body styling -->
+		<div class="container mx-auto"> <!-- Centered container -->
+            <section class="flex items-center justify-center h-screen"> <!-- Full-screen section with centered content -->
+                <h1 class="text-5xl">Django + Tailwind = ❤️</h1> <!-- Main heading -->
+                <div class="fixed-image-wrapper"> <!-- Wrapper for the image to ensure consistent size -->
+                    <img src="{% static 'path/to/your/image.jpg' %}" class="fixed-image" alt="Example Image"> <!-- Image with fixed size -->
+                </div>
+            </section>
+		</div>
+	</body>
+</html>

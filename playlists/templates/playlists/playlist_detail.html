@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="bg-white shadow-md rounded-lg p-6">
+    <h2 class="text-2xl font-bold mb-2">{{ playlist.title }}</h2>
+    <p class="text-gray-600 mb-4">{{ playlist.description }}</p>
+
+    <h3 class="text-xl font-semibold mb-2">Songs with Photos</h3>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for song in songs %}
+            {% if song.photo %}
+                <div class="bg-white shadow-md rounded-lg overflow-hidden">
+                    <img src="{{ song.photo.url }}" alt="{{ song.title }}" class="w-full h-48 object-cover">
+                    <div class="p-4">
+                        <h4 class="text-lg font-bold">{{ song.title }}</h4>
+                    </div>
+                </div>
+            {% endif %}
+        {% empty %}
+            <p class="text-gray-500">No songs with photos in this playlist.</p>
+        {% endfor %}
+    </div>
+
+    <h3 class="text-xl font-semibold mt-6 mb-2">Upload Photo</h3>
+    <form method="post" enctype="multipart/form-data" class="mb-4">
+        {% csrf_token %}
+        <label for="song_id" class="block text-sm font-medium text-gray-700">Select Song</label>
+        <select name="song_id" id="song_id" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+            {% for song in songs %}
+                <option value="{{ song.id }}">{{ song.title }}</option>
+            {% endfor %}
+        </select>
+        <label for="photo" class="block text-sm font-medium text-gray-700 mt-2">Upload Photo</label>
+        <input type="file" name="photo" id="photo" class="mt-1 block w-full text-sm text-gray-900 border border-gray-300 rounded-md cursor-pointer focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+        <button type="submit" class="mt-4 inline-block bg-blue-500 text-white text-sm font-medium py-2 px-4 rounded hover:bg-blue-600">Upload Photo</button>
+    </form>
+
+</div>
+{% endblock %}

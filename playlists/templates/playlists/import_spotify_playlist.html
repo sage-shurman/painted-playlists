@@ -1,0 +1,122 @@
+<!--playlists/templates/playlists/import_spotify_playlist.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex justify-center items-center min-h-screen bg-gray-100">
+    <div class="w-full max-w-md bg-white p-8 rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold mb-6 text-center">Import Spotify Playlist</h1>
+
+        <a href="{% url 'playlists:spotify_login' %}" class="block w-full text-center bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded mb-4">Connect Spotify</a>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="bg-{{ message.tags }}-100 border border-{{ message.tags }}-400 text-{{ message.tags }}-700 px-4 py-3 rounded relative mb-4" role="alert">
+                    {{ message }}
+                    <span class="absolute top-0 bottom-0 right-0 px-4 py-3">
+                        <svg class="fill-current h-6 w-6 text-{{ message.tags }}-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path d="M14.348 5.652a1 1 0 00-1.414 0L10 8.586 7.066 5.652a1 1 0 10-1.414 1.414L8.586 10l-2.934 2.934a1 1 0 101.414 1.414L10 11.414l2.934 2.934a1 1 0 001.414-1.414L11.414 10l2.934-2.934a1 1 0 000-1.414z"/></svg>
+                    </span>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form id="import-playlist-form" method="POST">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label for="playlistDropdown" class="block text-gray-700 font-bold mb-2">Select a Spotify Playlist:</label>
+                <select name="playlist_id" id="playlistDropdown" class="form-select block w-full mt-1 border-gray-300 rounded-md shadow-sm" required>
+                    <option value="">-- Select a Playlist --</option>
+                    {% for pl in spotify_playlists %}
+                        <option value="{{ pl.id }}">{{ pl.name }} ({{ pl.tracks }} tracks)</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">Import Playlist</button>
+        </form>
+
+        <!-- Loading Spinner -->
+        <div id="loading-spinner" class="flex justify-center mt-4" style="display: none;">
+            <div class="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full text-blue-500" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+
+        <!-- Message Display -->
+        <div id="message-container" class="mt-4"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('import-playlist-form');
+    const dropdown = document.getElementById('playlistDropdown');
+    const submitButton = form.querySelector('button[type="submit"]');
+    const loadingSpinner = document.getElementById('loading-spinner');
+    const messageContainer = document.getElementById('message-container');
+
+    // Enable submit button when a playlist is selected
+    dropdown.addEventListener('change', function() {
+        submitButton.disabled = !dropdown.value;
+    });
+
+    // Function to get CSRF token from cookies
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i=0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Handle form submission via AJAX
+    form.addEventListener('submit', function(event) {
+        event.preventDefault();
+        const playlistId = dropdown.value;
+        if (playlistId) {
+            loadingSpinner.style.display = 'block';
+            submitButton.disabled = true;
+            messageContainer.innerHTML = '';
+
+            fetch("{% url 'playlists:import_selected_playlist' %}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'  // Important for server-side detection
+                },
+                body: new URLSearchParams({ 'playlist_id': playlistId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                loadingSpinner.style.display = 'none';
+                submitButton.disabled = false;
+
+                if (data.success) {
+                    messageContainer.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+                    setTimeout(() => {
+                        window.location.href = data.redirect_url;
+                    }, 2000);
+                } else {
+                    messageContainer.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
+                }
+            })
+            .catch(error => {
+                loadingSpinner.style.display = 'none';
+                submitButton.disabled = false;
+                messageContainer.innerHTML = '<div class="alert alert-danger">An unexpected error occurred.</div>';
+                console.error('Error:', error);
+            });
+        }
+    });
+});
+</script>
+{% endblock %}
